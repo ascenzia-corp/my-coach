@@ -62,7 +62,7 @@ export function SafetyBanner({ alerts = [], doctorPhone }: SafetyBannerProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Urgence Eliquis</DialogTitle>
-            <DialogDescription>STOP et médecin immédiat si l'un de ces signes :</DialogDescription>
+            <DialogDescription>STOP et médecin immédiat si l&apos;un de ces signes :</DialogDescription>
           </DialogHeader>
           <ul className="list-disc pl-5 text-sm">
             <li>Vertiges persistants ou syncope</li>
