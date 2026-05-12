@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Calendar, BarChart3, Camera, BookOpen, Home } from "lucide-react";
+import { Calendar, BarChart3, Camera, BookOpen, Home, Settings } from "lucide-react";
 import { cn } from "@/lib/cn";
 
 const tabs = [
@@ -11,6 +11,7 @@ const tabs = [
   { href: "/weekly", label: "Bilans", icon: BarChart3 },
   { href: "/photos", label: "Photos", icon: Camera },
   { href: "/protocol", label: "Protocole", icon: BookOpen },
+  { href: "/settings", label: "Réglages", icon: Settings },
 ];
 
 export function BottomNav() {
