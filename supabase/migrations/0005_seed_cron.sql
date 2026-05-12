@@ -74,7 +74,9 @@ declare
   ]'::jsonb;
 begin
   for rec in select * from jsonb_array_elements(jobs) as j(value) loop
-    perform cron.unschedule((rec.value->>'name'));
+    if exists (select 1 from cron.job where jobname = rec.value->>'name') then
+      perform cron.unschedule((rec.value->>'name'));
+    end if;
     perform cron.schedule(
       rec.value->>'name',
       rec.value->>'cron',
@@ -82,7 +84,9 @@ begin
     );
   end loop;
 
-  perform cron.unschedule('mycoach-weekly-review');
+  if exists (select 1 from cron.job where jobname = 'mycoach-weekly-review') then
+    perform cron.unschedule('mycoach-weekly-review');
+  end if;
   perform cron.schedule(
     'mycoach-weekly-review',
     '0 7 * * 1',

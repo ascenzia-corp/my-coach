@@ -18,12 +18,16 @@ Checklist d'installation. 30-45 min. À faire **avant** que Laurent commence à 
 3. **Database → Extensions** : activer `pg_cron` et `pg_net`.
 4. **Storage → New Bucket** : `photos`, **privé**.
 
-### Configurer le SQL pour pg_cron
-Dans **SQL Editor**, exécuter une seule fois (remplacer les valeurs) :
+### Configurer les secrets utilisés par pg_cron
+Supabase Cloud n'autorise pas `alter database postgres set …`. À la place, la
+migration `0006_app_config.sql` crée `private.app_config`. Une fois `db push`
+exécuté (étape 4), coller dans **SQL Editor** :
 
 ```sql
-alter database postgres set app.supabase_url = 'https://<project-ref>.supabase.co';
-alter database postgres set app.service_role_key = '<service-role-key>';
+insert into private.app_config(key, value) values
+  ('supabase_url',     'https://<project-ref>.supabase.co'),
+  ('service_role_key', '<service-role-key>')
+on conflict (key) do update set value = excluded.value;
 ```
 
 ## 3. Clés VAPID
