@@ -163,6 +163,7 @@ export default async function DashboardPage() {
 
         <div className="grid grid-cols-2 gap-2">
           <MetricCard
+            href="/log/morning"
             title="Poids"
             value={formatKg(weightToday ?? null)}
             delta={weightToday != null ? formatDelta(weightToday - baseline.weight, "kg") : null}
@@ -170,6 +171,7 @@ export default async function DashboardPage() {
             hint="vs T0"
           />
           <MetricCard
+            href="/log/morning"
             title="Tour de taille"
             value={formatCm(waistToday)}
             delta={waistToday != null ? formatDelta(waistToday - baseline.waist, "cm") : null}
@@ -177,11 +179,13 @@ export default async function DashboardPage() {
             hint="vs T0"
           />
           <MetricCard
+            href="/log/morning"
             title="Cétones (avg 7j)"
             value={ketonesAvg != null ? `${ketonesAvg.toFixed(1)} mmol/L` : "—"}
             hint="cible ≥ 0,5"
           />
           <MetricCard
+            href="/log/evening"
             title="Énergie (avg 7j)"
             value={energyAvg != null ? `${energyAvg.toFixed(1)} /10` : "—"}
           />

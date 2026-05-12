@@ -90,7 +90,7 @@ export default function MorningPage() {
       ketones_mmol: values.ketones_mmol ?? null,
       bp_morning_sys: values.bp_morning_sys ?? null,
       bp_morning_dia: values.bp_morning_dia ?? null,
-      waist_cm: isMonday ? values.waist_cm ?? null : null,
+      waist_cm: values.waist_cm ?? null,
       notes: values.notes || null,
     };
     const { error } = await supabase
@@ -173,22 +173,20 @@ export default function MorningPage() {
           </CardContent>
         </Card>
 
-        {isMonday && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Tour de taille (lundi)</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Controller
-                control={control}
-                name="waist_cm"
-                render={({ field }) => (
-                  <QuickInput label="TT" value={field.value ?? 105} onChange={field.onChange} min={70} max={140} unit="cm" />
-                )}
-              />
-            </CardContent>
-          </Card>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tour de taille{isMonday ? " (lundi)" : ""}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Controller
+              control={control}
+              name="waist_cm"
+              render={({ field }) => (
+                <QuickInput label="TT" value={field.value ?? 105} onChange={field.onChange} min={70} max={140} unit="cm" />
+              )}
+            />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardContent className="pt-4">
