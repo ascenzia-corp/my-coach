@@ -3,6 +3,7 @@ import { HF, HFCard, HFChip, HFLineChart } from "@/components/hf";
 import { formatInTimeZone } from "date-fns-tz";
 import { fr } from "date-fns/locale";
 import { PARIS_TZ } from "@/lib/format";
+import { RegenerateButton } from "./RegenerateButton";
 
 export const dynamic = "force-dynamic";
 
@@ -106,6 +107,7 @@ export default async function WeeklyPage() {
           <KetoseGrid review={latest} weekRows={weekRows} />
           <CompactStats review={latest} />
           <Adjustments adjustments={latest.adjustments} />
+          <RegenerateButton weekStart={latest.week_start} />
         </>
       ) : (
         <HFCard style={{ marginTop: 16 }} padding="20px 18px">
