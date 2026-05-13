@@ -141,7 +141,9 @@ export default function QuickLogVoicePage() {
     startedAtRef.current = Date.now();
     const rec = new SR();
     rec.lang = "fr-FR";
-    rec.continuous = false;
+    // continuous=true lets the user dictate poids + cétones + TA in sequence
+    // without Safari cutting at the first silence. User taps mic to stop.
+    rec.continuous = true;
     rec.interimResults = true;
     rec.onresult = (event) => {
       const parts: string[] = [];
@@ -373,21 +375,39 @@ export default function QuickLogVoicePage() {
             ? <>Tape pour <strong style={{ color: HF.label }}>valider</strong> · re-tape pour redicter</>
             : <>Tape pour démarrer la dictée</>}
         </div>
-        <Link
-          href="/log/wheel/weight"
-          style={{
-            background: "transparent",
-            border: "none",
-            color: HF.blue,
-            fontSize: 15,
-            fontWeight: 500,
-            padding: "4px 10px",
-          }}
-        >
+        <div style={{ display: "flex", gap: 8, marginTop: 2 }}>
+          <ManualPill href="/log/wheel/weight" tint={HF.green} label="Poids" />
+          <ManualPill href="/log/wheel/ketones" tint={HF.orange} label="Cétones" />
+          <ManualPill href="/log/wheel/bp" tint={HF.red} label="Tension" />
+        </div>
+        <div className="hf-caption" style={{ color: HF.label3, marginTop: -2 }}>
           Saisir manuellement
-        </Link>
+        </div>
       </div>
     </div>
+  );
+}
+
+function ManualPill({ href, tint, label }: { href: string; tint: string; label: string }) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        padding: "7px 14px",
+        borderRadius: 999,
+        background: `${tint}1A`,
+        color: tint,
+        fontSize: 13,
+        fontWeight: 600,
+        letterSpacing: -0.1,
+      }}
+    >
+      <HFDot color={tint} size={6} />
+      {label}
+    </Link>
   );
 }
 
