@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { NotificationPermission } from "@/components/NotificationPermission";
+import Link from "next/link";
 import { HF, HFCard } from "@/components/hf";
 import { PROGRAM_START_ISO } from "@/lib/protocol";
 import { formatInTimeZone } from "date-fns-tz";
@@ -303,88 +303,18 @@ export default function SettingsPage() {
       {/* APPLICATION */}
       <SectionTitle label="APPLICATION" />
       <HFCard padding={0} style={{ marginTop: 8 }}>
-        <div style={{ padding: "14px 16px" }}>
-          <NotificationPermission />
-        </div>
-        <Sep />
-        <SetRow
+        <SetRowLink
           tint={HF.orange}
           icon="bell"
-          title="Planning des rappels"
+          title="Notifications"
           value={`${slots.filter((s) => s.enabled).length}/${slots.length} actifs`}
-          onClick={() => setEditingNotifs((v) => !v)}
+          href="/notifications"
         />
+        <Sep />
+        <SetRowLink tint={HF.pink} icon="camera" title="Photos mensuelles" value="" href="/photos" />
+        <Sep />
+        <SetRowLink tint={HF.green} icon="book" title="Bilans hebdo" value="" href="/weekly" />
       </HFCard>
-      {editingNotifs && slots.length > 0 && (
-        <HFCard padding={0} style={{ marginTop: 8 }}>
-          {slots.map((slot, i) => {
-            const { hh, mm, days } = parseCron(slot.cron_expression);
-            return (
-              <div key={slot.id}>
-                <div style={{ padding: "12px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="hf-headline">{slot.title}</div>
-                      <div className="hf-caption" style={{ color: HF.label2 }}>{slot.slot_label}</div>
-                    </div>
-                    <IOSToggle checked={slot.enabled} onChange={(v) => toggleSlot(slot, v)} />
-                  </div>
-                  {slot.enabled && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                      <input
-                        type="time"
-                        value={`${hh}:${mm}`}
-                        onChange={(e) => {
-                          const [nh, nm] = e.target.value.split(":");
-                          void updateSlotTime(slot, nh, nm, days);
-                        }}
-                        style={{
-                          background: HF.fill,
-                          color: HF.label,
-                          padding: "6px 10px",
-                          borderRadius: 8,
-                          border: "none",
-                          fontSize: 14,
-                          fontVariantNumeric: "tabular-nums",
-                        }}
-                      />
-                      <div style={{ display: "flex", gap: 4 }}>
-                        {DAY_LABELS.map((label, idx) => {
-                          const dowIso = ISO_FROM_INDEX[idx];
-                          const active = days.includes(dowIso);
-                          return (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => {
-                                const next = active ? days.filter((d) => d !== dowIso) : [...days, dowIso];
-                                void updateSlotTime(slot, hh, mm, next);
-                              }}
-                              style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: 8,
-                                background: active ? HF.label : HF.fill,
-                                color: active ? HF.bg : HF.label2,
-                                fontSize: 11,
-                                fontWeight: 600,
-                                border: "none",
-                              }}
-                            >
-                              {label}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {i < slots.length - 1 && <Sep />}
-              </div>
-            );
-          })}
-        </HFCard>
-      )}
 
       {/* DONNÉES */}
       <SectionTitle label="DONNÉES" />
@@ -493,7 +423,7 @@ function Stat({ color, value, unit }: { color: string; value: string; unit: stri
   );
 }
 
-type IconKey = "target" | "phone" | "clock" | "bell" | "download";
+type IconKey = "target" | "phone" | "clock" | "bell" | "download" | "camera" | "book";
 
 function RowIcon({ icon }: { icon: IconKey }) {
   switch (icon) {
@@ -527,7 +457,74 @@ function RowIcon({ icon }: { icon: IconKey }) {
           <path d="M12 3v12M7 11l5 5 5-5M5 21h14" />
         </svg>
       );
+    case "camera":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 7h3l1.5-2h5L16 7h3a1 1 0 011 1v10a1 1 0 01-1 1H5a1 1 0 01-1-1V8a1 1 0 011-1z" />
+          <circle cx="12" cy="13" r="3.5" />
+        </svg>
+      );
+    case "book":
+      return (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M5 4h11a3 3 0 013 3v14H8a3 3 0 01-3-3z" />
+          <path d="M5 4v14a3 3 0 003 3" />
+        </svg>
+      );
   }
+}
+
+function SetRowLink({
+  tint,
+  icon,
+  title,
+  value,
+  href,
+}: {
+  tint: string;
+  icon: IconKey;
+  title: string;
+  value: string;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      style={{
+        display: "flex",
+        width: "100%",
+        padding: "13px 16px",
+        gap: 12,
+        alignItems: "center",
+        background: "transparent",
+        color: HF.label,
+        textAlign: "left",
+      }}
+    >
+      <div
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 10,
+          flexShrink: 0,
+          background: `${tint}1F`,
+          color: tint,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <RowIcon icon={icon} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div className="hf-subhead">{title}</div>
+      </div>
+      <div className="hf-subhead hf-tnum" style={{ color: HF.label2 }}>{value}</div>
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke={HF.label3} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 4 }}>
+        <path d="M5 3l4 4-4 4" />
+      </svg>
+    </Link>
+  );
 }
 
 function SetRow({

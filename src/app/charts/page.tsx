@@ -452,26 +452,62 @@ export default function ChartsPage() {
         </HFCard>
       </div>
 
-      {/* Add metric (future) */}
-      <button
-        type="button"
-        disabled
-        style={{
-          marginTop: 14,
-          width: "100%",
-          background: HF.fill,
-          color: HF.label2,
-          padding: "12px",
-          borderRadius: 12,
-          fontSize: 15,
-          fontWeight: 500,
-          letterSpacing: -0.2,
-          border: "none",
-          opacity: 0.6,
-        }}
-      >
-        + Sommeil · Séances · Faim (bientôt)
-      </button>
+      {/* Voir aussi : Bilan hebdo + Photos */}
+      <div className="hf-eyebrow" style={{ marginTop: 22, marginLeft: 4, color: HF.label2 }}>
+        VOIR AUSSI
+      </div>
+      <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+        <Link href="/weekly" style={{ color: HF.label }}>
+          <HFCard padding="14px 16px" style={{ height: "100%" }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: `${HF.blue}1F`,
+                color: HF.blue,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="16" rx="2" />
+                <path d="M3 9h18M8 4v3M16 4v3" />
+              </svg>
+            </div>
+            <div className="hf-headline" style={{ marginTop: 10 }}>Bilan hebdo</div>
+            <div className="hf-caption" style={{ color: HF.label2, marginTop: 2 }}>
+              récap lundi · 7 h
+            </div>
+          </HFCard>
+        </Link>
+        <Link href="/photos" style={{ color: HF.label }}>
+          <HFCard padding="14px 16px" style={{ height: "100%" }}>
+            <div
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 10,
+                background: `${HF.pink}1F`,
+                color: HF.pink,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 7h3l1.5-2h5L16 7h3a1 1 0 011 1v10a1 1 0 01-1 1H5a1 1 0 01-1-1V8a1 1 0 011-1z" />
+                <circle cx="12" cy="13" r="3.5" />
+              </svg>
+            </div>
+            <div className="hf-headline" style={{ marginTop: 10 }}>Photos</div>
+            <div className="hf-caption" style={{ color: HF.label2, marginTop: 2 }}>
+              face · profil · dos
+            </div>
+          </HFCard>
+        </Link>
+      </div>
     </div>
   );
 }
