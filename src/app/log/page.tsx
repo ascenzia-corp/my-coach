@@ -58,8 +58,32 @@ interface Detection {
   dia?: number;
 }
 
+// Safari fr-FR mishears "cétones" — these are common homophones / typos
+// observed in real PWA dictation that we normalise before parsing.
+const KETONE_SYNONYMS = [
+  "s'étonnent",
+  "s'étonne",
+  "s’étonnent",
+  "s’étonne",
+  "se tonnent",
+  "se tonne",
+  "kétones",
+  "kétone",
+  "keton[ées]+",
+  "détones",
+  "détone",
+];
+
+function normalizeTranscript(raw: string): string {
+  let t = raw.toLowerCase();
+  for (const syn of KETONE_SYNONYMS) {
+    t = t.replace(new RegExp(`\\b${syn}\\b`, "g"), "cétones");
+  }
+  return t;
+}
+
 function parseTranscript(raw: string): Detection {
-  const t = raw.toLowerCase();
+  const t = normalizeTranscript(raw);
   const out: Detection = {};
 
   // Weight: "87 kilos 4" / "87 kg" / "87,4 kg" / "pèse 87 kilo 400"
@@ -74,6 +98,8 @@ function parseTranscript(raw: string): Detection {
   }
 
   // Ketones: "cétones 1,8" / "cétones 1 virgule 8" / "cétones 1 point 8"
+  // Also tolerate a "zéro/un/…" written-out leading digit because Safari
+  // sometimes mixes letters and digits.
   const km = t.match(/c[ée]tones?\s*(\d)\s*(?:[,.]\s*|\s*virgule\s*|\s*point\s*)?(\d)?/);
   if (km) {
     const int = parseInt(km[1], 10);
@@ -82,8 +108,10 @@ function parseTranscript(raw: string): Detection {
     if (v >= 0 && v <= 8) out.ketones = v;
   }
 
-  // BP: "tension 122 sur 79"
-  const bm = t.match(/(?:tension|t[ae]nsion|ta)\s*(\d{2,3})\s*(?:sur|\/|s)\s*(\d{2,3})/);
+  // BP: "tension 122 sur 79" / "tension artérielle 122/79" / "ta 12 sur 8"
+  const bm = t.match(
+    /(?:tension(?:\s+art[ée]rielle)?|t[ae]nsion|ta)\s*(\d{2,3})\s*(?:sur|\/|s)\s*(\d{2,3})/,
+  );
   if (bm) {
     const sys = parseInt(bm[1], 10);
     const dia = parseInt(bm[2], 10);
@@ -93,6 +121,17 @@ function parseTranscript(raw: string): Detection {
     }
   }
 
+  return out;
+}
+
+// Did the user *try* to dictate a metric but Safari mangled it past parsing?
+// Used to nudge them toward the matching manual pill.
+function detectMentionedButUnparsed(raw: string, det: Detection): Set<"weight" | "ketones" | "bp"> {
+  const t = normalizeTranscript(raw);
+  const out = new Set<"weight" | "ketones" | "bp">();
+  if (/\b(kilos?|kg|p[èe]se)\b/.test(t) && det.weight == null) out.add("weight");
+  if (/\bc[ée]tones?\b/.test(t) && det.ketones == null) out.add("ketones");
+  if (/\b(tension|t[ae]nsion|ta\b)/.test(t) && (det.sys == null || det.dia == null)) out.add("bp");
   return out;
 }
 
@@ -225,6 +264,7 @@ export default function QuickLogVoicePage() {
 
   const detected = detectionCount(detection);
   const recording = status === "listening";
+  const unparsed = detectMentionedButUnparsed(transcript, detection);
 
   return (
     <div style={{ minHeight: "100dvh", display: "flex", flexDirection: "column", paddingBottom: 24 }}>
@@ -280,6 +320,30 @@ export default function QuickLogVoicePage() {
               </HFChip>
             )}
             {elapsed > 0 && <HFChip>{elapsed.toFixed(1).replace(".", ",")} s</HFChip>}
+          </div>
+        )}
+        {unparsed.size > 0 && status !== "listening" && (
+          <div style={{ marginTop: 12 }}>
+            <HFCard padding="10px 12px" style={{ display: "flex", gap: 8, alignItems: "flex-start", background: `${HF.orange}14` }}>
+              <div style={{ color: HF.orange, marginTop: 2, flexShrink: 0 }}>
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="8" cy="8" r="6.5" />
+                  <path d="M8 5v4M8 11v.5" />
+                </svg>
+              </div>
+              <div className="hf-caption" style={{ color: HF.label2, flex: 1 }}>
+                Dictée imparfaite pour&nbsp;
+                {[...unparsed].map((k, i) => (
+                  <span key={k}>
+                    {i > 0 && (i === unparsed.size - 1 ? " et " : ", ")}
+                    <span style={{ color: HF.label, fontWeight: 600 }}>
+                      {k === "weight" ? "poids" : k === "ketones" ? "cétones" : "tension"}
+                    </span>
+                  </span>
+                ))}
+                . Utilise la pill correspondante ci-dessous.
+              </div>
+            </HFCard>
           </div>
         )}
       </div>
