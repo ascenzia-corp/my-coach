@@ -58,28 +58,42 @@ interface Detection {
   dia?: number;
 }
 
-// Safari fr-FR mishears "cétones" — these are common homophones / typos
-// observed in real PWA dictation that we normalise before parsing.
-const KETONE_SYNONYMS = [
-  "s'étonnent",
-  "s'étonne",
-  "s’étonnent",
-  "s’étonne",
-  "se tonnent",
-  "se tonne",
-  "kétones",
-  "kétone",
-  "keton[ées]+",
-  "détones",
-  "détone",
-];
-
+// Safari fr-FR mishears "cétones" in many ways depending on accent and
+// pacing. Each line below is a real transcription we want to coerce into
+// the canonical "cétones" before regex parsing.
 function normalizeTranscript(raw: string): string {
   let t = raw.toLowerCase();
-  for (const syn of KETONE_SYNONYMS) {
-    t = t.replace(new RegExp(`\\b${syn}\\b`, "g"), "cétones");
-  }
+  // Apostrophe forms (curly + straight)
+  t = t.replace(/s['’]étonnent?/g, "cétones");
+  // "se tonne(s/nt)"
+  t = t.replace(/\bse\s+tonn(?:e|es|ent)\b/g, "cétones");
+  // "sept tonnes" / "7 tonnes" — Safari interpreting "cé-tone" as "sept tonne"
+  t = t.replace(/\b(?:sept|7)\s+tonn(?:e|es)\b/g, "cétones");
+  // Spelling variants
+  t = t.replace(/\bk[ée]tones?\b/g, "cétones");
+  t = t.replace(/\bketones?\b/g, "cétones");
+  t = t.replace(/\bd[ée]tonn(?:e|es|ent)\b/g, "cétones");
+  t = t.replace(/\bd[ée]tones?\b/g, "cétones");
   return t;
+}
+
+// Safari fr-FR sometimes concatenates "cent" + "trente" into "10030" instead
+// of computing 130. When the captured sys number is out of plausible range,
+// try splitting and summing the prefix + suffix to recover the intended
+// value. Prefer (3,2) since "cent XX" is the common BP pattern.
+function recoverJoinedNumber(raw: string, min: number, max: number): number | null {
+  const direct = parseInt(raw, 10);
+  if (Number.isFinite(direct) && direct >= min && direct <= max) return direct;
+  if (raw.length < 4) return null;
+  for (const cut of [3, 2, 1]) {
+    if (cut >= raw.length) continue;
+    const a = parseInt(raw.slice(0, cut), 10);
+    const b = parseInt(raw.slice(cut), 10);
+    if (!Number.isFinite(a) || !Number.isFinite(b)) continue;
+    const sum = a + b;
+    if (sum >= min && sum <= max) return sum;
+  }
+  return null;
 }
 
 function parseTranscript(raw: string): Detection {
@@ -109,13 +123,15 @@ function parseTranscript(raw: string): Detection {
   }
 
   // BP: "tension 122 sur 79" / "tension artérielle 122/79" / "ta 12 sur 8"
+  // Allow 2–5 digits on the sys side to catch Safari's "cent+trente=10030"
+  // run-on, then recover with recoverJoinedNumber.
   const bm = t.match(
-    /(?:tension(?:\s+art[ée]rielle)?|t[ae]nsion|ta)\s*(\d{2,3})\s*(?:sur|\/|s)\s*(\d{2,3})/,
+    /(?:tension(?:\s+art[ée]rielle)?|t[ae]nsion|ta)\s*(\d{2,5})\s*(?:sur|\/|s)\s*(\d{2,4})/,
   );
   if (bm) {
-    const sys = parseInt(bm[1], 10);
-    const dia = parseInt(bm[2], 10);
-    if (sys >= 70 && sys <= 220 && dia >= 40 && dia <= 140) {
+    const sys = recoverJoinedNumber(bm[1], 70, 220);
+    const dia = recoverJoinedNumber(bm[2], 40, 140);
+    if (sys != null && dia != null) {
       out.sys = sys;
       out.dia = dia;
     }
