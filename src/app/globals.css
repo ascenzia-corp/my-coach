@@ -1,42 +1,99 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: #fafafa;
-  --color-foreground: #0a0a0a;
-  --color-primary: #0a0a0a;
-  --color-primary-foreground: #fafafa;
-  --color-success: #16a34a;
-  --color-danger: #dc2626;
-  --color-warning: #f59e0b;
-  --color-muted: #f4f4f5;
-  --color-muted-foreground: #71717a;
-  --color-border: #e4e4e7;
+/* Tailwind v4 — force dark mode via .dark on <html>, not prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
 
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+/* HF design tokens — Apple Health / Tesla sobre. Dark par défaut. */
+:root {
+  /* Surface tokens (dark mode = défaut) */
+  --hf-bg: #000000;
+  --hf-surface: #1c1c1e;
+  --hf-surface-alt: #2c2c2e;
+  --hf-label: #ffffff;
+  --hf-label2: rgba(235, 235, 245, 0.6);
+  --hf-label3: rgba(235, 235, 245, 0.3);
+  --hf-separator: rgba(84, 84, 88, 0.65);
+  --hf-fill: rgba(120, 120, 128, 0.24);
+  --hf-fill2: rgba(120, 120, 128, 0.16);
+
+  /* Tints sémantiques iOS (invariants light/dark) */
+  --hf-green: #34c759;
+  --hf-blue: #0a84ff;
+  --hf-orange: #ff9500;
+  --hf-red: #ff3b30;
+  --hf-indigo: #5856d6;
+  --hf-pink: #ff2d55;
+  --hf-yellow: #ffcc00;
+  --hf-gray: #8e8e93;
+
+  /* Stacks typo */
+  --hf-font-disp: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro", Inter, system-ui, sans-serif;
+  --hf-font-text: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", Inter, system-ui, sans-serif;
+  --hf-font-round: "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "SF Pro Display", Inter, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-background: #0a0a0a;
-    --color-foreground: #fafafa;
-    --color-muted: #18181b;
-    --color-muted-foreground: #a1a1aa;
-    --color-border: #27272a;
-  }
+@theme inline {
+  --color-background: var(--hf-bg);
+  --color-foreground: var(--hf-label);
+  --color-surface: var(--hf-surface);
+  --color-surface-alt: var(--hf-surface-alt);
+  --color-label2: var(--hf-label2);
+  --color-label3: var(--hf-label3);
+  --color-separator: var(--hf-separator);
+  --color-fill: var(--hf-fill);
+  --color-fill2: var(--hf-fill2);
+
+  --color-hf-green: var(--hf-green);
+  --color-hf-blue: var(--hf-blue);
+  --color-hf-orange: var(--hf-orange);
+  --color-hf-red: var(--hf-red);
+  --color-hf-indigo: var(--hf-indigo);
+  --color-hf-pink: var(--hf-pink);
+  --color-hf-yellow: var(--hf-yellow);
+  --color-hf-gray: var(--hf-gray);
+
+  --font-sans: var(--hf-font-text);
 }
 
-html, body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  font-family: var(--font-sans);
+html,
+body {
+  background: var(--hf-bg);
+  color: var(--hf-label);
+  font-family: var(--hf-font-text);
   -webkit-font-smoothing: antialiased;
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
 }
 
+/* Typo iOS HIG (Apple SF). Tabular nums obligatoires sur tous les chiffres. */
+.hf-tnum { font-variant-numeric: tabular-nums; font-feature-settings: "tnum"; }
+.hf-largeTitle { font-family: var(--hf-font-disp); font-weight: 700; font-size: 34px; line-height: 41px; letter-spacing: 0.37px; }
+.hf-title1 { font-family: var(--hf-font-disp); font-weight: 700; font-size: 28px; line-height: 34px; letter-spacing: 0.36px; }
+.hf-title2 { font-family: var(--hf-font-disp); font-weight: 700; font-size: 22px; line-height: 28px; letter-spacing: 0.35px; }
+.hf-title3 { font-family: var(--hf-font-disp); font-weight: 600; font-size: 20px; line-height: 25px; letter-spacing: 0.38px; }
+.hf-headline { font-weight: 600; font-size: 17px; line-height: 22px; letter-spacing: -0.43px; }
+.hf-body { font-weight: 400; font-size: 17px; line-height: 22px; letter-spacing: -0.43px; }
+.hf-callout { font-weight: 400; font-size: 16px; line-height: 21px; letter-spacing: -0.32px; }
+.hf-subhead { font-weight: 400; font-size: 15px; line-height: 20px; letter-spacing: -0.23px; }
+.hf-footnote { font-weight: 400; font-size: 13px; line-height: 18px; letter-spacing: -0.08px; }
+.hf-caption { font-weight: 400; font-size: 12px; line-height: 16px; }
+.hf-caption2 { font-weight: 400; font-size: 11px; line-height: 13px; }
+.hf-eyebrow {
+  font-family: var(--hf-font-text);
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 18px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+.hf-numHuge { font-family: var(--hf-font-round); font-weight: 700; letter-spacing: -1.5px; }
+.hf-numBig { font-family: var(--hf-font-round); font-weight: 600; letter-spacing: -0.8px; }
+
+.hf-card { border-radius: 14px; background: var(--hf-surface); }
+
 @supports (padding: env(safe-area-inset-bottom)) {
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-  .safe-top    { padding-top:    env(safe-area-inset-top); }
+  .safe-top { padding-top: env(safe-area-inset-top); }
 }
 
 button { -webkit-tap-highlight-color: transparent; }
