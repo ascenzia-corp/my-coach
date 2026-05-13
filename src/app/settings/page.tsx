@@ -56,6 +56,9 @@ export default function SettingsPage() {
   const [doctor, setDoctor] = useState("");
   const [target, setTarget] = useState({ weight: 85, waist: 95, bf: 20 });
   const [baseline, setBaseline] = useState({ weight: 97, waist: 108, bf: 30 });
+  const [newPassword, setNewPassword] = useState("");
+  const [pwdStatus, setPwdStatus] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+  const [pwdSaving, setPwdSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -104,6 +107,23 @@ export default function SettingsPage() {
         target_bf_pct: target.bf,
       })
       .eq("id", user.id);
+  }
+
+  async function changePassword() {
+    setPwdStatus(null);
+    if (newPassword.length < 8) {
+      setPwdStatus({ kind: "err", msg: "Au moins 8 caractères." });
+      return;
+    }
+    setPwdSaving(true);
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    setPwdSaving(false);
+    if (error) {
+      setPwdStatus({ kind: "err", msg: error.message });
+      return;
+    }
+    setNewPassword("");
+    setPwdStatus({ kind: "ok", msg: "Mot de passe mis à jour." });
   }
 
   async function logout() {
@@ -247,6 +267,31 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <Button variant="outline" onClick={exportJson}>Télécharger toutes mes données (JSON)</Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Mot de passe</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Label className="text-xs" htmlFor="new-password">Nouveau mot de passe</Label>
+          <Input
+            id="new-password"
+            type="password"
+            autoComplete="new-password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="••••••••"
+          />
+          {pwdStatus && (
+            <p className={`text-sm ${pwdStatus.kind === "ok" ? "text-emerald-600" : "text-red-600"}`}>
+              {pwdStatus.msg}
+            </p>
+          )}
+          <Button onClick={changePassword} disabled={pwdSaving || newPassword.length === 0}>
+            {pwdSaving ? "Mise à jour..." : "Mettre à jour"}
+          </Button>
         </CardContent>
       </Card>
 
