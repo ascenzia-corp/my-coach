@@ -334,7 +334,7 @@ function EliquisStatusCard({
       ? "Vigilance Eliquis"
       : "Alerte sécurité";
   return (
-    <Link href="/log/morning">
+    <Link href="/safety">
       <HFCard style={{ display: "flex", alignItems: "center", gap: 10 }} padding="12px 14px">
         <div
           style={{
