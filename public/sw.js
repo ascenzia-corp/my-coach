@@ -1,9 +1,10 @@
 // MyCoach service worker — push handler + offline caching.
 
-const CACHE_VERSION = "mycoach-v1";
+// Bump CACHE_VERSION whenever app HTML/static asset changes need to invalidate
+// existing PWA caches. The activate handler purges every cache key that
+// doesn't match the current version.
+const CACHE_VERSION = "mycoach-v2-hifi";
 const STATIC_ASSETS = [
-  "/",
-  "/protocol",
   "/manifest.json",
   "/icon-192.png",
   "/icon-512.png",
@@ -32,24 +33,38 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
 
-  // Network-first for API + Supabase calls
+  // Never cache API / Supabase — always go to network.
   if (url.pathname.startsWith("/api/") || url.hostname.endsWith(".supabase.co")) {
     return;
   }
 
-  // Cache-first for /protocol (offline reference)
-  if (url.pathname === "/protocol" || url.pathname.startsWith("/icon-") || url.pathname === "/manifest.json") {
+  // Stale-while-revalidate for /protocol (offline-able but refreshes when online)
+  // AND for icons / manifest. Previously /protocol was cache-first, which meant
+  // updates to the page never reached existing PWAs — bumping CACHE_VERSION fixes
+  // the current breakage, but SWR keeps future updates flowing without ceremony.
+  if (
+    url.pathname === "/protocol" ||
+    url.pathname.startsWith("/icon-") ||
+    url.pathname === "/manifest.json"
+  ) {
     event.respondWith(
-      caches.match(req).then((cached) => cached || fetch(req).then((res) => {
-        const copy = res.clone();
-        caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
-        return res;
-      })),
+      caches.match(req).then((cached) => {
+        const fetchPromise = fetch(req)
+          .then((res) => {
+            if (res && res.status === 200) {
+              const copy = res.clone();
+              caches.open(CACHE_VERSION).then((c) => c.put(req, copy));
+            }
+            return res;
+          })
+          .catch(() => cached);
+        return cached || fetchPromise;
+      }),
     );
     return;
   }
 
-  // Stale-while-revalidate for static assets
+  // Stale-while-revalidate for Next.js static assets (hashed → safe to cache).
   if (url.pathname.startsWith("/_next/static/")) {
     event.respondWith(
       caches.match(req).then((cached) => {
