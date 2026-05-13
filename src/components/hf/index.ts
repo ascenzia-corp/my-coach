@@ -6,3 +6,4 @@ export { HFDot, type HFDotProps } from "./Dot";
 export { HFChip, type HFChipProps } from "./Chip";
 export { HFLineChart, type HFLineChartProps, type HFLineChartPoint } from "./LineChart";
 export { HFWheelPicker, type HFWheelPickerProps } from "./WheelPicker";
+export { HFBarChart, type HFBarChartProps } from "./BarChart";
