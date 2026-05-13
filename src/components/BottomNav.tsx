@@ -122,7 +122,7 @@ export function BottomNav() {
         {/* Central FAB slot */}
         <div style={{ flex: 1, position: "relative" }}>
           <Link
-            href="/log/morning"
+            href="/log"
             aria-label="Saisie rapide"
             style={{
               position: "absolute",
